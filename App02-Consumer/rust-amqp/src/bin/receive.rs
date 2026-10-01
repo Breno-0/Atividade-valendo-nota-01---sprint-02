@@ -17,8 +17,11 @@ struct Usuario {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let rabbitmq_host = std::env::var("RABBITMQ_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let amqp_addr = format!("amqp://{}:5672/%2f", rabbitmq_host);
+
     let connection = Connection::connect(
-        "amqp://127.0.0.1:5672/%2f",
+        &amqp_addr,
         ConnectionProperties::default()
     ).await?;
 
@@ -93,6 +96,10 @@ fn validar_usuario(usuario: &Usuario) -> Result<(), Vec<String>> {
     }
 
     if !usuario.email.contains('@') {
+        erros.push("Email inválido".to_string());
+    }
+
+    if !usuario.email.contains('.') {
         erros.push("Email inválido".to_string());
     }
 
